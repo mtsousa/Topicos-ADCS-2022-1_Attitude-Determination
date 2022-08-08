@@ -32,7 +32,7 @@ def genTrainingData():
     '''
     Cria os datasets de treino e de validação com a parametrização do Eixo/ângulo do Euler
     '''
-    NUM_SAMPLES = 10*10**4
+    NUM_SAMPLES = 10*10**3
     RATE_VALIDATION = 0.2
     SAMPLES_INDEX = np.array([k for k in range(0, NUM_SAMPLES)])
     np.random.shuffle(SAMPLES_INDEX)
