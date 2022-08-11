@@ -4,6 +4,8 @@
 
 import numpy as np
 import os
+from torch.utils.data import Dataset#, DataLoader
+import torch
 
 def saveDataset(index, matrix, name, path):
     '''
@@ -19,25 +21,16 @@ def saveDataset(index, matrix, name, path):
         for k in index:
             np.save(f, matrix[k])
 
-def loadDataset(f):
-    '''
-    Retorna a próxima matriz do arquivo de salvamento
-
-    Argumentos
-        f: Classe <_io.BufferedReader> vindo do comando <with open(nome_do_arquivo, 'rb') as f> 
-    '''
-    return np.load(f)
-
 def genTrainingData():
     '''
     Cria os datasets de treino e de validação com a parametrização do Eixo/ângulo do Euler
     '''
-    NUM_SAMPLES = 10*10**3
-    RATE_VALIDATION = 0.2
+    NUM_SAMPLES = 16*10**3
+    SIZE_VALIDATION = 0.2
     SAMPLES_INDEX = np.array([k for k in range(0, NUM_SAMPLES)])
     np.random.shuffle(SAMPLES_INDEX)
-    VALIDATION_INDEX = SAMPLES_INDEX[0:int(NUM_SAMPLES*RATE_VALIDATION)]
-    TRAINING_INDEX = SAMPLES_INDEX[int(NUM_SAMPLES*RATE_VALIDATION):]
+    VALIDATION_INDEX = SAMPLES_INDEX[0:int(NUM_SAMPLES*SIZE_VALIDATION)]
+    TRAINING_INDEX = SAMPLES_INDEX[int(NUM_SAMPLES*SIZE_VALIDATION):]
 
     # Define a matriz de vetores r
     r = np.random.uniform(-100, 100, (NUM_SAMPLES, 3, 3))
@@ -115,10 +108,10 @@ def genTrainingData():
     B = np.zeros((NUM_SAMPLES, 3, 3))
 
     for k in range(NUM_SAMPLES):
-        a = [1, 1, 1]
-        B[k] = a[0]*np.matmul(np.transpose(b[k][0]).reshape((3, 1)), r[k][0].reshape((1, 3)))
-        B[k] += a[1]*np.matmul(np.transpose(b[k][1]).reshape((3, 1)), r[k][1].reshape((1, 3)))
-        B[k] += a[2]*np.matmul(np.transpose(b[k][2]).reshape((3, 1)), r[k][2].reshape((1, 3)))
+        a = 1/3
+        B[k] = a*np.matmul(np.transpose(b[k][0]).reshape((3, 1)), r[k][0].reshape((1, 3)))
+        B[k] += a*np.matmul(np.transpose(b[k][1]).reshape((3, 1)), r[k][1].reshape((1, 3)))
+        B[k] += a*np.matmul(np.transpose(b[k][2]).reshape((3, 1)), r[k][2].reshape((1, 3)))
     
     '''Estrutura da matriz de perfil da atitude
         B = [[a11 a12 a3],
@@ -148,3 +141,53 @@ def genTrainingData():
     saveDataset(VALIDATION_INDEX, b, 'vector_b', 'data/validation')
     saveDataset(VALIDATION_INDEX, n, 'vector_n', 'data/validation')
     saveDataset(VALIDATION_INDEX, B, 'matrix_B', 'data/validation')
+
+
+class AttitudeProfileDataset(Dataset):
+    
+    def __init__(self, root_dir, mode='training', dataset_size=0.8, num_samples=16*10**3):
+        '''
+        Inicializa a classe do dataset
+
+        Argumentos
+            root_dir: Diretório root dos arquivos do dataset
+            mode: Modo de inicialização 'training' ou 'validation'
+            dataset_size: Tamanho do dataset a ser inicializado
+            num_samples: Número total de amostras (validação + treinamento)
+        '''
+        self.matrices_dir = root_dir + mode
+        num_samples = int(num_samples*dataset_size)
+        self.matrix_A = []
+        self.matrix_B = []
+
+        with open(self.matrices_dir + '/matrix_A.npy', 'rb') as f:
+            for k in range(num_samples):
+                self.matrix_A.append(np.load(f))
+            
+        self.matrix_A = np.array(self.matrix_A)
+
+        with open(self.matrices_dir + '/matrix_B.npy', 'rb') as f:
+            for k in range(num_samples):
+                self.matrix_B.append(np.load(f))
+
+        self.matrix_B = np.array(self.matrix_B)
+
+    def __len__(self):
+        return len(self.matrix_A)
+
+    def __getitem__(self, idx):
+        sample = {'matrix B': torch.from_numpy(self.matrix_B[idx]), 'matrix A': torch.from_numpy(self.matrix_A[idx])}
+        return sample
+
+# dataset = AttitudeProfileDataset('data/', dataset_size=0.8)
+
+# print(dataset[0])
+
+# dataloader = DataLoader(dataset, batch_size=3, shuffle=True, num_workers=0, drop_last=True)
+
+# for i_batch, sample_batched in enumerate(dataloader):
+#     print(i_batch, sample_batched['matrix A'].size(),
+#           sample_batched['matrix B'].size())
+#     break
+
+# genTrainingData()
