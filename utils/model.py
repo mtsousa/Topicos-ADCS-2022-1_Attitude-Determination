@@ -14,7 +14,10 @@ class MappingFunction():
         Normaliza um vetor
 
         Argumentos
-            v: Vetor (batch_size, 3)
+            v: Vetor para operação (batch_size, 3)
+        
+        Retorna
+            v: Vetor normalizado (batch_size, 3)
         '''
         batch=v.shape[0]
         v_mag = torch.sqrt(v.pow(2).sum(1))
@@ -34,7 +37,10 @@ class MappingFunction():
         Calcula o produto vetorial
 
         Argumentos
-            u, v: Vetores (batch_size, 3)
+            u, v: Vetores para operação (batch_size, 3)
+        
+        Retorna
+            out: Vetor resultante (batch_size, 3)
         '''
         batch = u.shape[0]
         i = u[:,1]*v[:,2] - u[:,2]*v[:,1]
@@ -50,6 +56,9 @@ class MappingFunction():
 
         Argumentos
             poses: Vetor 6D (batch_size, 6)
+        
+        Retorna
+            matrix: Matriz de rotação (3, 3)
         '''
         x_raw = poses[:,0:3]
         y_raw = poses[:,3:6]
@@ -94,11 +103,11 @@ class BSwishNet(nn.Module):
         self.batch_size = batch_size
 
     def forward(self, x):
-        x = x.view(self.batch_size, 1, 9).contiguous()
+        x = x.view(self.batch_size, 1, 9)
         x = self.swish1(self.conv1(x))
         x = self.swish2(self.conv2(self.drop1(x)))
         x = self.swish3(self.conv3(self.drop2(x)))
-        x = x.view(self.batch_size, -1).contiguous()
+        x = x.view(self.batch_size, -1)
         x = self.swish4(self.dense1(self.drop3(x)))
         x = self.dense2(self.drop4(x))
         return self.mapping.compute_rotation_matrix_from_ortho6d(x)

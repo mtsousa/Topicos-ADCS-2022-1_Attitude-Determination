@@ -6,8 +6,10 @@ import numpy as np
 import os
 from torch.utils.data import Dataset#, DataLoader
 import torch
+import matplotlib.pyplot as plt
+import glob
 
-def saveDataset(index, matrix, name, path):
+def save_dataset(index, matrix, name, path):
     '''
     Salva as matrizes do numpy no arquivo indicado
 
@@ -21,7 +23,7 @@ def saveDataset(index, matrix, name, path):
         for k in index:
             np.save(f, matrix[k])
 
-def genTrainingData():
+def gen_training_data():
     '''
     Cria os datasets de treino e de validação com a parametrização do Eixo/ângulo do Euler
     '''
@@ -125,22 +127,22 @@ def genTrainingData():
         os.mkdir(f'data/training')
     except:
         pass
-    saveDataset(TRAINING_INDEX, r, 'vector_r', 'data/training')
-    saveDataset(TRAINING_INDEX, A_true, 'matrix_A', 'data/training')
-    saveDataset(TRAINING_INDEX, b, 'vector_b', 'data/training')
-    saveDataset(TRAINING_INDEX, n, 'vector_n', 'data/training')
-    saveDataset(TRAINING_INDEX, B, 'matrix_B', 'data/training')
+    save_dataset(TRAINING_INDEX, r, 'vector_r', 'data/training')
+    save_dataset(TRAINING_INDEX, A_true, 'matrix_A', 'data/training')
+    save_dataset(TRAINING_INDEX, b, 'vector_b', 'data/training')
+    save_dataset(TRAINING_INDEX, n, 'vector_n', 'data/training')
+    save_dataset(TRAINING_INDEX, B, 'matrix_B', 'data/training')
 
     # Salva o dataset de validação
     try:
         os.mkdir(f'data/validation')
     except:
         pass
-    saveDataset(VALIDATION_INDEX, r, 'vector_r', 'data/validation')
-    saveDataset(VALIDATION_INDEX, A_true, 'matrix_A', 'data/validation')
-    saveDataset(VALIDATION_INDEX, b, 'vector_b', 'data/validation')
-    saveDataset(VALIDATION_INDEX, n, 'vector_n', 'data/validation')
-    saveDataset(VALIDATION_INDEX, B, 'matrix_B', 'data/validation')
+    save_dataset(VALIDATION_INDEX, r, 'vector_r', 'data/validation')
+    save_dataset(VALIDATION_INDEX, A_true, 'matrix_A', 'data/validation')
+    save_dataset(VALIDATION_INDEX, b, 'vector_b', 'data/validation')
+    save_dataset(VALIDATION_INDEX, n, 'vector_n', 'data/validation')
+    save_dataset(VALIDATION_INDEX, B, 'matrix_B', 'data/validation')
 
 
 class AttitudeProfileDataset(Dataset):
@@ -179,6 +181,67 @@ class AttitudeProfileDataset(Dataset):
         sample = {'matrix B': torch.from_numpy(self.matrix_B[idx]), 'matrix A': torch.from_numpy(self.matrix_A[idx])}
         return sample
 
+def load_np(file_name, num_batches=1):
+    '''
+    Carrega o arquivo .npy como um vetor
+
+    Argumentos
+        file_name: String com o formato do nome dos arquivos para leitura
+        num_samples: Número total de amostras
+    
+    Retorna
+        list: Vetor numpy (1, num_samples)
+    '''
+    files = glob.glob(file_name)
+    list = []
+    for file in files:
+        list.append((np.load(file)/num_batches)*180/np.pi)
+
+    list = np.array(list)
+
+    return list.reshape(1, 2000)
+
+
+def plot_geodesic_loss(dir='data/geodesic_loss/', save=False):
+    '''
+    Cria o gráfico do erro geodésico durante o treinamento
+
+    Argumentos
+        dir: Diretório root dos arquivos dos dados do erro
+        save: Flag de controle para salvar o gráfico
+    '''
+    training = load_np(dir + 'training*.npy', num_batches=16*10**3*0.8/64)
+    validation = load_np(dir + 'validation*.npy', num_batches=16*10**3*0.2/64)
+    x = np.linspace(1, len(training[0]), len(training[0]))
+
+    fig, ax = plt.subplots()
+    ax.plot(x, training[0], 'r-', label='treinamento')
+    ax.plot(x, validation[0], 'g-', label='validação')
+    ax.grid(True)
+    ax.set_ylabel('Erro geodésico médio (graus)')
+    ax.set_xlabel('Época')
+    ax.legend()
+
+    if save:
+        plt.savefig('data/imagem/erro_treinamento.pdf', format='pdf')
+
+    plt.show()
+
+def compute_wahba_loss():
+    pass
+
+def plot_wahba_loss():
+    pass
+
+def json2tensor():
+    pass
+
+def compute_attitude_profile_matrix():
+    pass
+
+def run_crassidis_test():
+    pass
+
 # dataset = AttitudeProfileDataset('data/', dataset_size=0.8)
 
 # print(dataset[0])
@@ -190,4 +253,5 @@ class AttitudeProfileDataset(Dataset):
 #           sample_batched['matrix B'].size())
 #     break
 
-# genTrainingData()
+# gen_training_data()
+# plot_geodesic_loss()

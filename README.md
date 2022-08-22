@@ -35,3 +35,29 @@ pip install -r requirements.txt
 ```
 
 ## Como usar
+
+### Para treinar o modelo
+
+- Com o ambiente de desenvolvimento ativo, execute
+```bash
+python src/main.py training --model [WEIGHTS] --epochs [INICIO]-[FIM]
+```
+
+Em que:
+- [INICIO]: Primeira época de treino;
+- [FIM]: Última época de treino; e
+- E [WEIGHTS] deve ser substituído por
+* Caminho dos pesos, como 'model/bswish_model_0005.pth';
+* O peso do último treino, ou seja, 'last'; ou
+* 'first' para indicar que não tem pesos prévios.
+
+### Para avaliar o modelo
+
+- Com o ambiente de desenvolvimento ativo, execute
+```bash
+python src/main.py evaluate --model [WEIGHTS]
+```
+
+Em que [WEIGHTS] deve ser substituído por
+* Caminho dos pesos, como 'model/bswish_model_0005.pth'; ou
+* O peso do último treino, ou seja, 'last'.
