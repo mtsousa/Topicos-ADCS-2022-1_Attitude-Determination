@@ -11,58 +11,15 @@ PROJECT_ROOT = os.path.abspath(os.path.join(
 sys.path.append(PROJECT_ROOT)
 
 from utils.model import BSwishNet
-from utils.utils import AttitudeProfileDataset
+from utils.utils import geodesic_loss, wahba_loss
+from utils.dataset import AttitudeProfileDataset
 import torch
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 import argparse
-import glob
+from glob import glob
 import numpy as np
-
-def trace_of_A(A, device, batch_size=64, dim=3):
-    '''
-    Calcula o traço de um tensor 3D (batch_size, N, N)
-
-    Argumentos
-        A: Tensor 3D
-        batch_size: Tamanho da primeira dimensão do tensor
-        dim: Tamanho das outras duas dimensões do tensor
-    
-    Retorna
-        output: Traço das matrizes (batch_size, N)
-    '''
-    mask = torch.zeros((batch_size, dim, dim)).to(device)
-    mask[:, torch.arange(0, dim), torch.arange(0, dim) ] = 1.0
-    output = A*mask
-    output = torch.sum(output, axis=(1, 2))
-    return output.to(device)
-
-def geodesic_loss(A_true, A_pred, device, eps=1.e-7):
-    '''
-    Calcula o erro geodésico
-
-    Argumentos
-        A_true: Matriz de rotação verdadeira
-        A_pred: Matriz de rotação da saída da rede
-        eps: Limites para normalização da entrada
-    
-    Retorna
-        torch.sum(geodesic_error): Soma do erro geodésico
-    '''
-    A = torch.matmul(A_true, A_pred.transpose(1, 2).contiguous()).to(device)
-
-    tr_A = trace_of_A(A, device)
-    
-    alfa = (tr_A-1)/2
-    for i, k in enumerate(alfa):
-        if k > 1-eps:
-            alfa[i] = 1-eps
-        elif k < -1+eps:
-            alfa[i] = -1 + eps
-
-    geodesic_error = torch.acos(alfa)
-    return torch.sum(geodesic_error.to(device))
 
 def update_optimizer(epoch, optimizer):
     '''
@@ -129,7 +86,8 @@ def fit_model(model, dataloader, optimizer, num_epochs, device):
                     optimizer.step()
 
             loss_list[phase].append(epoch_loss)
-            print(f'{phase.capitalize()} - erro {epoch_loss/len(dataloader[phase])}', flush=True)
+            num_samples = (len(dataloader[phase])*model.batch_size)
+            print(f'{phase.capitalize()} - erro {(epoch_loss/num_samples)*180/torch.pi}', flush=True)
 
         torch.save({'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict()}, f'model/bswish_model_{str(epoch).zfill(4)}.pth')
@@ -148,7 +106,7 @@ if __name__ == '__main__':
     
     parser.add_argument('command',
                         metavar='<command>',
-                        help="'training' or 'evaluate'")
+                        help="'training' or 'test'")
     parser.add_argument('--model', required=True,
                         metavar='/path/to/weights.pth',
                         help="Path to weights (.pth file), 'last' or 'first'")
@@ -157,9 +115,9 @@ if __name__ == '__main__':
                         help="Range of epochs to training")
 
     args = parser.parse_args()
-    print('Command:', args.command)
-    print('Model:', args.model)
-    print('Epochs:', args.epochs)
+    for key, value in args._get_kwargs():
+        if value is not None:
+            print(f'{key.capitalize()}: {value}')
     print()
 
     if args.command == 'training':
@@ -181,17 +139,17 @@ if __name__ == '__main__':
             # Carrega os pesos
             if args.model != 'first':
                 if args.model == 'last':
-                    params = glob.glob('model/*.pth')[-1]
-                    model_params = torch.load(params)
+                    params = glob('model/*.pth')[-1]
+                    model_params = torch.load(params, map_location=torch.device(device))
                 else:
-                    model_params = torch.load(args.model)
+                    model_params = torch.load(args.model, map_location=torch.device(device))
 
                 model.load_state_dict(model_params['model_state_dict'])
                 optimizer.load_state_dict(model_params['optimizer_state_dict'])
    
             else:
                 pass
-        
+            
             # Carrega o dataset de treino
             training_dataset = AttitudeProfileDataset('data/', dataset_size=0.8)
             training_dataloader = DataLoader(training_dataset, batch_size=64, shuffle=True, num_workers=num_workers)
@@ -208,24 +166,54 @@ if __name__ == '__main__':
             fit_model(model, dataloader, optimizer, num_epochs, device)
         except Exception as e:
             print(e)
-        
-    elif args.command == 'evaluate':
-        model = BSwishNet(batch_size=1)
+
+    elif args.command == 'test':
+        model = BSwishNet(batch_size=25)
+
+        if torch.cuda.is_available():
+            device = 'cuda'
+            num_workers = 2
+        else:
+            device = 'cpu'
+            num_workers = 0
 
         try:
             # Carrega os pesos
             if args.model == 'last':
-                params = glob.glob('model/')[-1]
-                model_params = torch.load(params)
+                params = glob('model/*.pth')[-1]
+                model_params = torch.load(params, map_location=torch.device(device))
             else:
-                model_params = torch.load(args.model)
+                model_params = torch.load(args.model, map_location=torch.device(device))
             
             model.load_state_dict(model_params['model_state_dict'])
 
             model.eval()
-        
-            # TODO: Carrega a entrada e avalia com a rede neural
-        
+
+            # Carrega o dataset de teste
+            test_dataset = AttitudeProfileDataset('data/', mode='test', dataset_size=1, num_samples=3000)
+            test_dataloader = DataLoader(test_dataset, batch_size=25, num_workers=num_workers)
+            
+            test_loss = {'geodesic': [], 'wahba': []}
+            for i_batch, samples in enumerate(test_dataloader):
+                data, target = samples['matrix B'], samples['matrix A']
+
+                if torch.cuda.is_available():
+                    data = data.to(device)
+                    target = target.to(device)
+                
+                data, target = Variable(data).float(), Variable(target).float()
+                
+                output = model(data)
+                geo_loss = geodesic_loss(target, output, device, batch_size=25)
+                test_loss['geodesic'].append(geo_loss)
+                wb_loss = wahba_loss(data, output, device, batch_size=25)
+                test_loss['wahba'].append(wb_loss)
+
+            test_loss['geodesic'] = [k.cpu().detach().numpy() for k in test_loss['geodesic']]
+            test_loss['wahba'] = [k.cpu().detach().numpy() for k in test_loss['wahba']]
+            print('Erro geodesico medio:', (np.array(test_loss['geodesic']).mean()/25)*180/np.pi)
+            print('Erro de wahba medio:', np.array(test_loss['wahba']).mean())
+
         except Exception as e:
             print(e)
     
