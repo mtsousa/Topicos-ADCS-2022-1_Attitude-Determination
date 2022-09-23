@@ -239,17 +239,17 @@ def get_vectors_from_json(input):
 
     return r, b
 
-def save_attitude_matrix(A, output, parametrization):
+def save_attitude_matrix(A, output, parameterization):
     '''
     Salva a matriz de atitude no formato .json
 
     Argumentos
         A: Matriz de atitude
         output: Nome do arquivo .json de saída
-        parametrization: Tipo de parametrização adotada
+        parameterization: Tipo de parametrização adotada
     '''
     A_list = A[0].tolist()
-    A_dict = {'Parametrization': parametrization, 'Line 0': '', 'Line 1': '', 'Line 2': ''}
+    A_dict = {'Parameterization': parameterization, 'Line 1': '', 'Line 2': '', 'Line 3': ''}
     
     A_dict['Line 0'] = str(A_list[0][0]) + ', ' + str(A_list[0][1]) + ', ' + str(A_list[0][2]) 
     A_dict['Line 1'] = str(A_list[1][0]) + ', ' + str(A_list[1][1]) + ', ' + str(A_list[1][2])

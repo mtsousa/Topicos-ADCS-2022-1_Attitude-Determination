@@ -1,4 +1,6 @@
 matplotlib==3.5.3
+openpyxl==3.0.10
+pandas==1.4.4
 pipdeptree==2.2.1
 requests==2.28.1
 setuptools==56.0.0

@@ -35,9 +35,9 @@ if __name__ == '__main__':
     parser.add_argument('--wahba_weights',
                         metavar='a1, a2, a3',
                         help="Coma separeted weights for Wahba's problem")
-    parser.add_argument('--parametrization', default='axis-angle',
+    parser.add_argument('--parameterization', default='axis-angle',
                         metavar="'axis-angle' or 'quaternion'",
-                        help="Parametrization of output attitude matrix")
+                        help="Parameterization of output attitude matrix")
 
     args = parser.parse_args()
     for key, value in args._get_kwargs():
