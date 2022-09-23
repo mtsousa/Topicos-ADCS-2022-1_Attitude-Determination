@@ -48,8 +48,10 @@ python src/main.py training --model [WEIGHTS] --epochs [INICIO]-[FIM]
 ```
 
 **[INICIO]**: Primeira época de treino;
+
 **[FIM]**: Última época de treino; e
-**[WEIGHTS]**: Caminho para os pesos do modelo. Pode ser:
+
+**[WEIGHTS]**: Pesos do modelo em um dos formatos:
 - Caminho dos pesos, como 'model/bswish_model_0005.pth';
 - O peso do último treino, ou seja, 'last'; ou
 - 'first' para indicar que não tem pesos prévios.
@@ -66,7 +68,7 @@ python src/main.py training --model first --epochs 1-200
 python src/main.py test --model [WEIGHTS]
 ```
 
-**[WEIGHTS]**: Caminho para os pesos do modelo. Pode ser:
+**[WEIGHTS]**: Pesos do modelo em um dos formatos:
 - Caminho dos pesos, como 'model/bswish_model_0005.pth'; ou
 - O peso do último treino, ou seja, 'last'.
 
@@ -83,7 +85,8 @@ python eval/evaluate.py --input [INPUT] --model [WEIGHTS]
 ```
 
 **[INPUT]**: Caminho para arquivo ".json" de entrada; e
-**[WEIGHTS]**: Caminho para os pesos do modelo. Pode ser:
+
+**[WEIGHTS]**: Pesos do modelo em um dos formatos:
 - Caminho dos pesos, como 'model/bswish_model_0005.pth'; ou
 - O peso do último treino, ou seja, 'last'.
 
