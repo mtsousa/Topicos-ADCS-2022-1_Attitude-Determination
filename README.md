@@ -7,6 +7,7 @@ Este repositório foi desenvolvido no contexto da disciplina de Tópicos Especia
 ## Configurações
 
 - Versão do Python: 3.9.5
+- Versão do PyTorch: 1.12.1
 
 ### Crie um ambiente de desenvolvimento virtual
 
