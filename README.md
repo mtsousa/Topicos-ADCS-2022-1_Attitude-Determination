@@ -1,9 +1,9 @@
 # Topicos-ADCS-2022-1_Attitude-Determination
 
-![](https://img.shields.io/badge/docs-v0.1-green)
+![](https://img.shields.io/badge/version-v0.1-blue)
 ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=PyTorch&logoColor=white)
 
-Este repositório foi desenvolvido no contexto da disciplina de Tópicos Especiais em Engenharia da Universidade de Brasília (UnB) e implementa uma versão adaptada da rede neural desenvolvida por *Dos Santos et al.* para determinação da atitude.
+Este repositório foi desenvolvido no contexto da disciplina de Tópicos Especiais em Engenharia Elétrica da Universidade de Brasília (UnB) e implementa uma versão adaptada da rede neural desenvolvida por *Dos Santos et al.* para determinação da atitude.
 
 > Dos Santos, G. H., Seman, L. O., Bezerra, E. A., Leithardt, V., Mendes, A. S., & Stefenon, S. F. (2021). ["Static Attitude Determination Using Convolutional Neural Networks"](https://www.mdpi.com/1424-8220/21/19/6419/pdf). Sensors (Basel, Switzerland), 21(19), 6419. https://doi.org/10.3390/s21196419
 
