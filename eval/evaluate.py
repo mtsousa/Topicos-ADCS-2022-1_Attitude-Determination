@@ -1,6 +1,8 @@
-# @Autor: Matheus Teixeira de Sousa (mtsousa14@gmail.com)
-#
-# @Descrição: Avalia o modelo treinado com os dados do AlfaCrux
+"""
+@Autor: Matheus Teixeira de Sousa (mtsousa14@gmail.com)
+
+Avalia o modelo treinado com os dados do AlfaCrux
+"""
 
 import os
 import sys
@@ -23,21 +25,21 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
     description='Evaluate B-Swish model')
     
-    parser.add_argument('--input', required=True,
+    parser.add_argument('-i', '--input', required=True,
                         metavar='/path/to/input.json',
-                        help="Path to input file (.json file)")
-    parser.add_argument('--model', required=True,
+                        help="Path to input file (.json file).")
+    parser.add_argument('-m', '--model', required=True,
                         metavar='/path/to/weights.pth',
-                        help="Path to weights (.pth file), 'last' or 'first'")
-    parser.add_argument('--output',
+                        help="Path to weights (.pth file), 'last' or 'first'.")
+    parser.add_argument('-o', '--output',
                         metavar='/path/to/output.json',
-                        help="Path to input file (.json file)")
-    parser.add_argument('--wahba_weights',
-                        metavar='a1, a2, a3',
-                        help="Coma separeted weights for Wahba's problem")
-    parser.add_argument('--parameterization', default='axis-angle',
-                        metavar="'axis-angle' or 'quaternion'",
-                        help="Parameterization of output attitude matrix")
+                        help="Path to input file (.json file).")
+    parser.add_argument('-w', '--wahba_weights',
+                        metavar='a1, a2, a3', default='1.0, 1.0, 1.0',
+                        help="Coma separeted weights for Wahba's problem. (Default: 1.0, 1.0, 1.0)")
+    parser.add_argument('-p', '--parameterization', default='axis-angle',
+                        choices=['axis-angle', 'quaternion'],
+                        help="Parameterization of output attitude matrix. (Default: axis-angle)")
 
     args = parser.parse_args()
     for key, value in args._get_kwargs():
@@ -69,6 +71,7 @@ if __name__ == '__main__':
         
         if args.wahba_weights:
             a = args.wahba_weights.split(', ')
+            a = [float(k) for k in a]
         else:
             a = []
         

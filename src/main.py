@@ -1,6 +1,8 @@
-# @Autor: Matheus Teixeira de Sousa (mtsousa14@gmail.com)
-#
-# @Descrição: Implementa o treino e a validação para o modelo
+"""
+@Autor: Matheus Teixeira de Sousa (mtsousa14@gmail.com)
+
+Implementa o treino e a validação para o modelo
+"""
 
 import os
 import sys
@@ -106,13 +108,13 @@ if __name__ == '__main__':
     
     parser.add_argument('command',
                         metavar='<command>',
-                        help="'training' or 'test'")
-    parser.add_argument('--model', required=True,
+                        help="Set the mode to 'training' or'test'.")
+    parser.add_argument('-m', '--model', required=True,
                         metavar='/path/to/weights.pth',
-                        help="Path to weights (.pth file), 'last' or 'first'")
-    parser.add_argument('--epochs',
+                        help="Path to weights (.pth file), 'last' or 'first'.")
+    parser.add_argument('-e', '--epochs',
                         metavar='first_epoch-last_epoch',
-                        help="Range of epochs to training")
+                        help="Range of epochs to training.")
 
     args = parser.parse_args()
     for key, value in args._get_kwargs():

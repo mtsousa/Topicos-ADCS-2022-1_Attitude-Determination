@@ -12,31 +12,29 @@ Este repositório foi desenvolvido no contexto da disciplina de Tópicos Especia
 - Versão do Python: 3.9.5
 - Versão do PyTorch: 1.12.1
 
-### Crie um ambiente de desenvolvimento virtual
+### Ambiente de desenvolvimento
 
-- No ambiente Windows, no bash do git, execute
+1. Crie o ambiente
+
 ```bash
 python -m venv pTAD
 ```
 
-- No ambiente Linux, execute
-```bash
-python3.9 -m venv pTAD
-```
+2. Ative o ambiente
 
-### Ative o ambiente de desenvolvimento virtual
+    - Em ambiente Windows (bash do git)
+    
+    ```bash
+    source pTAD/Scripts/activate
+    ```
+    
+    - Em ambiente Linux
+    
+    ```bash
+    source pTAD/bin/activate
+    ```
 
-- No ambiente Windows, no bash do git, execute
-```bash
-source pTAD/Scripts/activate
-```
-
-- No ambiente Linux, execute
-```bash
-source pTAD/bin/activate
-```
-
-### Instale as dependências
+3. Instale as dependências
 
 ```bash
 pip install -r requirements.txt
@@ -44,74 +42,69 @@ pip install -r requirements.txt
 
 ## Como usar
 
-### Para treinar o modelo
+### Para treinar ou testar o modelo
 
-- Com o ambiente de desenvolvimento ativo, execute
 ```bash
-python src/main.py training --model [WEIGHTS] --epochs [INICIO]-[FIM]
+(pTAD)$ python src/main.py -h
+usage: main.py [-h] -m /path/to/weights.pth [-e first_epoch-last_epoch]
+               <command>
+
+Train B-Swish on Attitude profile dataset
+
+positional arguments:
+  <command>             Set the mode to 'training' or'test'.
+
+options:
+  -h, --help            show this help message and exit
+  -m /path/to/weights.pth, --model /path/to/weights.pth
+                        Path to weights (.pth file), 'last' or 'first'.
+  -e first_epoch-last_epoch, --epochs first_epoch-last_epoch
+                        Range of epochs to training.
 ```
 
-**[INICIO]**: Primeira época de treino;
+- Exemplo de comando de treino
 
-**[FIM]**: Última época de treino; e
-
-**[WEIGHTS]**: Pesos do modelo em um dos formatos:
-- Caminho dos pesos, como 'model/bswish_model_0005.pth';
-- O peso do último treino, ou seja, 'last'; ou
-- 'first' para indicar que não tem pesos prévios.
-
-Exemplo do comando:
 ```bash
 python src/main.py training --model first --epochs 1-200
 ```
 
-### Para avaliar o modelo com o dataset de teste
+- Exemplo de comando de teste
 
-- Com o ambiente de desenvolvimento ativo, execute
-```bash
-python src/main.py test --model [WEIGHTS]
-```
-
-**[WEIGHTS]**: Pesos do modelo em um dos formatos:
-- Caminho dos pesos, como 'model/bswish_model_0005.pth'; ou
-- O peso do último treino, ou seja, 'last'.
-
-Exemplo do comando:
 ```bash
 python src/main.py test --model last
 ```
 
 ### Para avaliar o modelo com outros dados
 
-- Com o ambiente de desenvolvimento ativo, execute
 ```bash
-python eval/evaluate.py --input [INPUT] --model [WEIGHTS]
+(pTAD)$ python eval/evaluate.py -h
+usage: evaluate.py [-h] -i /path/to/input.json -m /path/to/weights.pth
+                   [-o /path/to/output.json] [-w a1, a2, a3]
+                   [-p {axis-angle,quaternion}]
+
+Evaluate B-Swish model
+
+options:
+  -h, --help            show this help message and exit
+  -i /path/to/input.json, --input /path/to/input.json
+                        Path to input file (.json file).
+  -m /path/to/weights.pth, --model /path/to/weights.pth
+                        Path to weights (.pth file), 'last' or 'first'.
+  -o /path/to/output.json, --output /path/to/output.json
+                        Path to input file (.json file).
+  -w a1, a2, a3, --wahba_weights a1, a2, a3
+                        Coma separeted weights for Wahba's problem. (Default:
+                        1.0, 1.0, 1.0)
+  -p {axis-angle,quaternion}, --parameterization {axis-angle,quaternion}
+                        Parameterization of output attitude matrix. (Default:
+                        axis-angle)
 ```
 
-**[INPUT]**: Caminho para arquivo ".json" de entrada; e
+- Exemplo de comando
 
-**[WEIGHTS]**: Pesos do modelo em um dos formatos:
-- Caminho dos pesos, como 'model/bswish_model_0005.pth'; ou
-- O peso do último treino, ou seja, 'last'.
-
-Exemplo do comando:
 ```bash
 python eval/evaluate.py --input data/arquivo/entrada.json --model last
 ```
-
-#### Flags opcionais
-
---output [OUTPUT]:
-**[OUTPUT]**: Caminho/nome para o arquivo ".json" de saída;
-- Exemplo: --output data/arquivo/saida.json
-
---wahba_weights [WAHBA]:
-**[WAHBA]**: Pesos para o problema de Wahba;
-- Exemplo: --wahba_weights 0.225, 0.157, 0.458
-
---parameterization [PARAMS]:
-**[PARAMS]**: Parametrização da matriz de atitude. Pode ser 'axis-angle' ou 'quaternion';
-- Exemplo: --parameterization quaternion
 
 #### Formato do arquivo de entrada
 
